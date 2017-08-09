@@ -27,11 +27,15 @@ function $Promise(executor) {
   }
   this._callHandlers = () => {
     while (this._handlerGroups.length) {
-      let cb = this._handlerGroups.shift()
+      let cb;
       if (this._state === 'fulfilled') {
+        cb = this._handlerGroups.shift();
         cb.successCb(this._value);
-      } else {
+      } else if (this._state === 'rejected') {
+        cb = this._handlerGroups.shift();
+        if(cb.errorCb){
         cb.errorCb(this._value);
+        }
       }
     }
   }
@@ -42,13 +46,19 @@ function $Promise(executor) {
     if (typeof onSuccess !== 'function') onSuccess = null;
     if (typeof onReject !== 'function') onReject = null;
     this._handlerGroups.push({ successCb: onSuccess, errorCb: onReject });
-    if (this._state === 'fulfilled') {
+    if (this._state !== 'pending' ) {
       this._callHandlers();
     }
   }
 
-  const resolve = this._internalResolve.bind(this);
-  const reject = this._internalReject.bind(this);
+  this.catch = function(onReject) {
+    return this.then(null, onReject);
+  }
+
+  // this.catch = this.then.bind(this,null)
+
+  const resolve = this._internalResolve;
+  const reject = this._internalReject;
   executor(resolve, reject);
 
 }
