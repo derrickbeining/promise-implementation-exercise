@@ -6,6 +6,7 @@ Promises Workshop: build the pledge.js ES6-style promise library
 
 function $Promise(executor) {
   if (typeof executor !== 'function') throw new TypeError('Type error: Promise constructor invoked with no executor function.');
+
   this._state = 'pending';
   this._value = null;
   this._internalResolve = (value) => {
@@ -14,9 +15,15 @@ function $Promise(executor) {
       this._value = value;
     }
   }
-  this._internalReject = () => {
-
+  this._internalReject = (reason) => {
+    if (this._state === 'pending') {
+      this._state = 'rejected';
+      this._value = reason;
+    }
   }
+
+  executor(this._internalResolve, this._internalReject)
+
 }
 
 
