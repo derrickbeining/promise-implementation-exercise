@@ -10,6 +10,7 @@ function $Promise(executor) {
 
   this._state = 'pending';
   this._value = undefined;
+
   this._internalResolve = (value) => {
     if (this._state === 'pending') {
       this._state = 'fulfilled';
@@ -18,6 +19,7 @@ function $Promise(executor) {
     // console.log('I am "this":', this);
     this._callHandlers()
   }
+
   this._internalReject = (reason) => {
     if (this._state === 'pending') {
       this._state = 'rejected';
@@ -25,14 +27,23 @@ function $Promise(executor) {
     }
     this._callHandlers();
   }
+
   this._callHandlers = () => {
     while (this._handlerGroups.length) {
       let cb;
+
       if (this._state === 'fulfilled') {
         cb = this._handlerGroups.shift();
-        cb.successCb(this._value);
+
+        if (cb.successCb) {
+          cb.successCb(this._value);
+        }
+
+        // return cb.downstreamPromise;
+
       } else if (this._state === 'rejected') {
         cb = this._handlerGroups.shift();
+
         if(cb.errorCb){
         cb.errorCb(this._value);
         }
@@ -45,10 +56,20 @@ function $Promise(executor) {
   this.then = (onSuccess, onReject) => {
     if (typeof onSuccess !== 'function') onSuccess = null;
     if (typeof onReject !== 'function') onReject = null;
-    this._handlerGroups.push({ successCb: onSuccess, errorCb: onReject });
+
+    const newPromise = new $Promise(() => {
+
+    })
+
+    this._handlerGroups.push({
+      successCb: onSuccess,
+      errorCb: onReject,
+      downstreamPromise: newPromise
+    });
     if (this._state !== 'pending' ) {
       this._callHandlers();
     }
+
   }
 
   this.catch = function(onReject) {
@@ -63,12 +84,12 @@ function $Promise(executor) {
 
 }
 
-// const promisedValue = new Promise(function (resolve, reject) {
-//   someAsynOperation('some argument', function (err, result) {
-//     if (err) reject(err);
-//     else resolve(result);
-//   })
-// })
+const promisedValue = new Promise(function (resolve, reject) {
+  someAsynOperation('some argument', function (err, result) {
+    if (err) reject(err);
+    else resolve(result);
+  })
+})
 
 
 
