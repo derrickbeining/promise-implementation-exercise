@@ -13,6 +13,39 @@ function $Promise ( executor ) {
   )
 }
 
+$Promise.all = function ( arr ) {
+  if ( !Array.isArray( arr ) ) throw TypeError( '$Promise.all only accepts array arguments.' );
+
+  return new $Promise(( resolve, reject ) => {
+    arr.forEach(( el, idx, arr ) => {
+      if ( el instanceof $Promise ) {
+        el.then(
+          result => arr[ idx ] = result,
+          reason => reject(reason) // if any promise in arr fails,
+        )                          // fail promise returned by .all
+      }
+    } )
+    let timer = 0; // there's probably a better way to do this:
+    const intervalID = setInterval(() => {
+      timer++ // check for promises every ms, resolve when none left
+      if ( !arr.find(( el ) => el instanceof $Promise ) ) {
+        resolve( arr );
+        clearTimeout( intervalID );
+      } else if ( timer > 10000 ) { // else kill the promise after 10s
+        reject( arr );
+        clearTimeout( intervalID );
+      }
+    }, 1)
+  } )
+}
+
+$Promise.resolve = function ( value ) {
+  if ( value instanceof $Promise ) return value
+  return new $Promise( function ( resolve, reject ) {
+    resolve( value )
+  } )
+}
+
 $Promise.prototype._settle = function ( state, value ) {
   if ( this._isSettled() ) return;
   this._state = state;
@@ -32,7 +65,6 @@ $Promise.prototype.then = function ( onSuccess, onReject ) {
   debugger;
   if ( !isFn( onSuccess ) ) onSuccess = null;
   if ( !isFn( onReject ) ) onReject = null;
-
   const newPromise = new $Promise( noop )
   const newHandlerGroup = {
     successCb: onSuccess,
@@ -40,7 +72,6 @@ $Promise.prototype.then = function ( onSuccess, onReject ) {
     downstreamPromise: newPromise
   };
   this._handlerGroups.push( newHandlerGroup );
-
   if ( this._isSettled() ) this._callHandlers();
   return newPromise;
 }
@@ -66,10 +97,10 @@ $Promise.prototype._callHandlers = function () {
 }
 
 // this is equivalent to commented-out version below, but better
-$Promise.prototype._assimilate = function (aPromise) {
+$Promise.prototype._assimilate = function ( aPromise ) {
   aPromise.then(
-    this._internalResolve.bind(this),
-    this._internalReject.bind(this)
+    this._internalResolve.bind( this ),
+    this._internalReject.bind( this )
   );
 };
 
