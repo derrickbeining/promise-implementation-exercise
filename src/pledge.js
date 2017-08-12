@@ -21,7 +21,7 @@ $Promise.all = function ( arr ) {
       if ( el instanceof $Promise ) {
         el.then(
           result => arr[ idx ] = result,
-          reason => reject(reason) // if any promise in arr fails,
+          reason => reject( reason ) // if any promise in arr fails,
         )                          // fail promise returned by .all
       }
     } )
@@ -35,13 +35,13 @@ $Promise.all = function ( arr ) {
         reject( arr );
         clearTimeout( intervalID );
       }
-    }, 1)
+    }, 1 )
   } )
 }
 
 $Promise.resolve = function ( value ) {
   if ( value instanceof $Promise ) return value
-  return new $Promise( function ( resolve, reject ) {
+  return new $Promise( function ( resolve ) {
     resolve( value )
   } )
 }
@@ -62,7 +62,6 @@ $Promise.prototype._internalReject = function ( reason ) {
 }
 
 $Promise.prototype.then = function ( onSuccess, onReject ) {
-  debugger;
   if ( !isFn( onSuccess ) ) onSuccess = null;
   if ( !isFn( onReject ) ) onReject = null;
   const newPromise = new $Promise( noop )
@@ -77,10 +76,9 @@ $Promise.prototype.then = function ( onSuccess, onReject ) {
 }
 
 $Promise.prototype._callHandlers = function () {
-  debugger;
   if ( this._isPending() ) return; // no need to run if Promise has no val
   this._handlerGroups.forEach( group => {
-    debugger;
+
     const handler = this._getCorrectHandler( group ); // fulfill/reject handler
     const nextPromise = group.downstreamPromise;
     if ( !handler ) return this._propogateTo( nextPromise );
@@ -155,12 +153,13 @@ function isFn ( val ) { return typeof val === 'function' };
 
 
 
-// const promisedValue = new Promise(function (resolve, reject) {
-//   someAsynOperation('some argument', function (err, result) {
-//     if (err) reject(err);
-//     else resolve(result);
-//   })
-// })
+const promisedValue =
+  new Promise( function ( resolve, reject ) {
+    someAsynOperation( 'some argument', function ( err, result ) {
+      if ( err ) reject( err );
+      else resolve( result );
+    } )
+  } )
 
 
   // while (this._handlerGroups.length) {
@@ -203,3 +202,4 @@ var Promise = require('pledge');
 …
 var promise = new Promise(function (resolve, reject) { … });
 --------------------------------------------------------*/
+
