@@ -162,34 +162,6 @@ const promisedValue =
   } )
 
 
-  // while (this._handlerGroups.length) {
-  //   let handler = this._handlerGroups.shift();
-  //   let cb =
-  //   if (handler[cb]) {
-  //     handler[cb](this._value);
-  //   } else {
-
-  //     handler.downstreamPromise._internalResolve()
-  //   }
-  //   if (this._isFulfilled()) {
-  //     handler = this._handlerGroups.shift();
-
-  //     if (handler.successCb) {
-  //       handler.successCb(this._value);
-  //     }
-
-  //   } else if (this._isRejected()) {
-  //     handler = this._handlerGroups.shift();
-
-  //     if(handler.errorCb){
-  //     handler.errorCb(this._value);
-  //     }
-  //   }
-  // }
-
-
-
-
 /*-------------------------------------------------------
 The spec was designed to work with Test'Em, so we don't
 actually use module.exports. But here it is for reference:
